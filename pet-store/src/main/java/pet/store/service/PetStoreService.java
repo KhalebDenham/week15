@@ -1,5 +1,7 @@
 package pet.store.service;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
@@ -21,10 +23,10 @@ import pet.store.entity.PetStore;
 public class PetStoreService {
 	@Autowired
 	private PetStoreDao petStoreDao;
-	
+
 	@Autowired
 	private EmployeeDao employeeDao;
-	
+
 	@Autowired
 	private CustomerDao customerDao;
 
@@ -63,22 +65,22 @@ public class PetStoreService {
 		return petStoreDao.findById(petStoreId)
 				.orElseThrow(() -> new NoSuchElementException("No pet store with matching id= " + petStoreId + "."));
 	}
-	
+
 	@Transactional(readOnly = false)
 	public PetStoreEmployee saveEmployee(Long petStoreId, PetStoreEmployee petStoreEmployee) {
 		PetStore petStore = findPetStoreById(petStoreId);
 		Long employeeId = petStoreEmployee.getEmployeeId();
 		Employee employee = findOrCreateEmployee(petStoreId, employeeId);
-		
+
 		copyEmployeeFields(employee, petStoreEmployee);
-		
+
 		employee.setPetStore(petStore);
 		petStore.getEmployees().add(employee);
 		Employee eDb = employeeDao.save(employee);
-		
+
 		return new PetStoreEmployee(eDb);
 	}
-	
+
 	private Employee findOrCreateEmployee(Long petStoreId, Long employeeId) {
 		if (Objects.isNull(employeeId)) {
 			return new Employee();
@@ -89,14 +91,14 @@ public class PetStoreService {
 
 	private Employee findEmployeeById(Long petStoreId, Long employeeId) {
 		Employee employee = employeeDao.findById(employeeId).orElseThrow();
-		
+
 		if (employee.getPetStore().getPetStoreId().equals(petStoreId)) {
 			return employee;
 		} else {
 			throw new IllegalArgumentException(petStoreId + " does not match the given petStoreId");
 		}
 	}
-	
+
 	private void copyEmployeeFields(Employee employee, PetStoreEmployee petStoreEmployee) {
 		employee.setEmployeeId(petStoreEmployee.getEmployeeId());
 		employee.setEmployeeFirstName(petStoreEmployee.getEmployeeFirstName());
@@ -104,19 +106,18 @@ public class PetStoreService {
 		employee.setEmployeePhone(petStoreEmployee.getEmployeePhone());
 		employee.setEmployeeJobTitle(petStoreEmployee.getEmployeeJobTitle());
 	}
-	
+
 	@Transactional(readOnly = false)
 	public PetStoreCustomer saveCustomer(Long petStoreId, PetStoreCustomer petStoreCustomer) {
 		PetStore petStore = findPetStoreById(petStoreId);
 		Long customerId = petStoreCustomer.getCustomerId();
 		Customer customer = findOrCreateCustomer(petStoreId, customerId);
-		
+
 		copyCustomerFields(customer, petStoreCustomer);
 		petStore.getCustomers().add(customer);
-		
+
 		Customer dbCustomer = customerDao.save(customer);
-		
-		
+
 		return new PetStoreCustomer(dbCustomer);
 	}
 
@@ -127,24 +128,63 @@ public class PetStoreService {
 			return findCustomerById(petStoreId, customerId);
 		}
 	}
-	
+
 	private Customer findCustomerById(Long petStoreId, Long customerId) {
 		Customer customer = customerDao.findById(customerId).orElseThrow();
-		
+
 		for (PetStore petStore : customer.getPetStore()) {
 			if (petStore.getPetStoreId() == petStoreId) {
 				return customer;
 			} else {
 				throw new IllegalArgumentException();
 			}
-		} return customer;
+		}
+		return customer;
 	}
-	
+
 	private void copyCustomerFields(Customer customer, PetStoreCustomer petStoreCustomer) {
 		customer.setCustomerEmail(petStoreCustomer.getCustomerEmail());
 		customer.setCustomerFirstName(petStoreCustomer.getCustomerFirstName());
 		customer.setCustomerId(petStoreCustomer.getCustomerId());
 		customer.setCustomerLastName(petStoreCustomer.getCustomerLastName());
-		
+
+	}
+
+	@Transactional(readOnly = true)
+	public List<PetStoreData> retrieveAllPetStores() {
+		List<PetStore> petStores = petStoreDao.findAll();
+		List<PetStoreData> result = new LinkedList<>();
+
+		for (PetStore petStore : petStores) {
+			PetStoreData psd = new PetStoreData(petStore);
+
+			if (Objects.nonNull(psd.getCustomers())) {
+			psd.getCustomers().clear();
+			}
+			if (Objects.nonNull(psd.getEmployees())) {
+				psd.getEmployees().clear();
+			}
+			result.add(psd);
+
+		}
+		return result;
+
+	}
+
+	@Transactional(readOnly = true)
+	public PetStoreData retrievePetStoreById(Long petStoreId) {
+		if (findPetStoreById(petStoreId) == null) {
+			throw new NoSuchElementException("No matching pet store with id of " + petStoreId);
+		} else {
+			PetStoreData petStoreData = new PetStoreData(findPetStoreById(petStoreId));
+			return petStoreData;
+		}
+
+	}
+
+	public void deletePetStoreById(Long petStoreId) {
+		PetStore petStore = findPetStoreById(petStoreId);
+		petStoreDao.delete(petStore);
+
 	}
 }

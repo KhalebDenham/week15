@@ -19,9 +19,7 @@ public class PetStoreData {
 	private String petStoreState;
 	private String petStoreZip;
 	private String petStorePhone;
-
 	private Set<PetStoreCustomer> customers;
-
 	private Set<PetStoreEmployee> employees;
 
 	public PetStoreData(PetStore petStore) {
@@ -32,15 +30,18 @@ public class PetStoreData {
 		petStoreZip = petStore.getPetStoreZip();
 		petStorePhone = petStore.getPetStorePhone();
 		petStoreId = petStore.getPetStoreId();
-		
-		
+
 		for (Employee employee : petStore.getEmployees()) {
+
 			employees.add(new PetStoreEmployee(employee));
+
 		}
-//
-//		for (Customer customer : petStore.getCustomers()) {
-//			customers.add(new PetStoreCustomer(customer));
-//		}
+
+		for (Customer customer : petStore.getCustomers()) {
+
+			customers.add(new PetStoreCustomer(customer));
+
+		}
 
 	}
 
@@ -51,7 +52,7 @@ public class PetStoreData {
 		private Long customerId;
 		private String customerFirstName;
 		private String customerLastName;
-		private Long customerEmail;
+		private String customerEmail;
 
 		public PetStoreCustomer(Customer customer) {
 			customerId = customer.getCustomerId();
@@ -70,7 +71,7 @@ public class PetStoreData {
 		private String employeeLastName;
 		private String employeePhone;
 		private String employeeJobTitle;
-		private Set<PetStoreEmployee> petStoreEmployees;
+		
 
 		public PetStoreEmployee(Employee employee) {
 			employeeId = employee.getEmployeeId();

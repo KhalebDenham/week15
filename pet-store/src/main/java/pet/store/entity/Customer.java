@@ -24,7 +24,7 @@ public class Customer {
 	private String customerLastName;
 	
 	@Column(unique = true) // means that there will be an index on the contributor email, for no duplicates
-	private Long customerEmail;
+	private String customerEmail;
 	
 	@EqualsAndHashCode.Exclude
 	@ToString.Exclude
